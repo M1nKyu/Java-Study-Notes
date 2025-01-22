@@ -163,6 +163,6 @@ Key: Cherry, Value: 3
 >**참고**
 > - [01-블로그](https://jbiscode.tistory.com/entry/Java-Iterator%EC%9D%98-%EA%B8%B0%EB%8A%A5%EA%B3%BC-%EC%82%AC%EC%9A%A9-%EC%9D%B4%EC%9C%A0)
 > - [02-블로그](https://thaud153.tistory.com/17)
-> - [03-Map 출력하기]
+> - [03-Map 출력하기](https://dongjin94.tistory.com/178)
 > - ChatGPT 
 
