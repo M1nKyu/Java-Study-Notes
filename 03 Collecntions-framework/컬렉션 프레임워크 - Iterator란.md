@@ -3,10 +3,10 @@ created: Iterator란
 tags:
   - java
   - collection-framework
-last_modified:
+last_modified: 2025-01-23T15:23:00
 ---
 ## ⭐ Iterator (반복자)
-> Iterator는 자바의 컬렉션 객체에 저장된 요소들을 하나씩 순회하며 접근할 수 있는 인터페이스이다.
+> Iterator는 자바의 **컬렉션 객체**에 저장된 요소들을 **하나씩 순회하며 접근**할 수 있는 인터페이스이다.
 
 ### 🍪 주요 메서드
 
@@ -15,6 +15,15 @@ last_modified:
 | `boolean hasNext()` | 다음 요소가 존재하면 `true`, 없으면 `false`를 반환.<br>반복의 끝에 도달했는지 확인할 때 사용된다                                                                     |
 |     `E next()`      | 다음 요소를 반환한다.<br>요소를 가져오면서 커서를 다음 위치로 이동한다.<br>더 이상 가져올 요소가 없으면 `NoSuchElementEception` 발생                                           |
 |   `void remove()`   | 현재 반복중인 컬렉션에서 마지막으로 반환된 요소를제거한다.<br>선택적(optional)이며, 모든 컬렉션이 이를 지원하지는 않는다.<br>`Collections.unmodiableList`같은 수정 불가능한 컬렉션은 지원하지 않는다. |
+
+---
+### 🍪 기본 선언 방법
+- 컬렉션 객체의 `iterator()` 메서드를 호출하여 선언한다.
+```java
+// `Type`은 컬렉션이 저장하는 요소의 타입.
+// `collection`은 `List`, `Set` 등 컬렉션 객체.
+Iterator<Type> iterator = collection.iterator();
+```
 
 ---
 ### 🍪 사용 예시
@@ -29,7 +38,7 @@ public class IteratorExample {
 		list.add("Banana");
 		list.add("Cherry");
 		
-		Iterator<String> iterator = list.iterator();
+		Iterator<String> iterator = list.iterator(); // 📌
 		
 		while(iterator.hasNext()){
 			String element = iterator.next();
@@ -63,7 +72,7 @@ Updated List: [Apple, Cherry]
 ---
 ### 🍪 Map에서의 Iterator
 - Map은 `Iterator`를 사용하여 직접 순회를 할 수 없다.
-	- 뷰(Collection Views)를 통해 직접적으로 `Iterator`를 사용할 수 있다.
+	- **뷰(Collection Views)**를 통해 직접적으로 `Iterator`를 사용할 수 있다.
 - 세 가지 뷰: `keySet()`, `values()`, `entrySet()`
 #### 🍬 keySet()
 - `Set<K>` 형식으로, `Map`의 모든 **키를 반환**한다.
@@ -163,6 +172,6 @@ Key: Cherry, Value: 3
 >**참고**
 > - [01-블로그](https://jbiscode.tistory.com/entry/Java-Iterator%EC%9D%98-%EA%B8%B0%EB%8A%A5%EA%B3%BC-%EC%82%AC%EC%9A%A9-%EC%9D%B4%EC%9C%A0)
 > - [02-블로그](https://thaud153.tistory.com/17)
-> - [03-Map 출력하기]
+> - [03-Map 출력하기](https://dongjin94.tistory.com/178)
 > - ChatGPT 
 
