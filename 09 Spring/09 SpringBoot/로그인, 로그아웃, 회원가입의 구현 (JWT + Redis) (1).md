@@ -126,17 +126,24 @@ http.sessionManagement((session) -> session.sessionCreationPolicy(SessionCreatio
 ---
 ### 🍪 DB 연결하기
 - 블로그에서는 postgreSql을 사용했지만, 나는 mySql을 사용한다.
-```properties
-spring.application.name=Auth_JWT_Redis
+```yaml
+spring:
+  application:
+    name: Auth_JWT_Redis
 
-spring.datasource.url=jdbc:mysql://localhost:3306/<DB명>?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
-spring.datasource.username=root
-spring.datasource.password=<비밀번호>
-spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+  datasource:
+    url: jdbc:mysql://localhost:3306/study_springboot_auth_jwt_redis?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: root
+    password: alsrbf2158$%!!
+    driver-class-name: com.mysql.cj.jdbc.Driver
 
-spring.jpa.hibernate.ddl-auto=none
-spring.jpa.show-sql=true
-spring.jpa.properties.hibernate.format_sql=true
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
 ```
 ---
 ### 🍪 Model 작성
@@ -473,7 +480,7 @@ body: {"email": "myEmail@naver.com", "password":"myPw1234"}
 ## 다음 학습 : [[로그인, 로그아웃, 회원가입의 구현 (JWT + Redis) (2)]]
 ---
 ## 📝 추가 학습
-- [[Lombok]]
+- [[Lombok과 어노테이션 정리 (Spring)]]
 - [[Enum class (Java)]]
 - [[Custom Exception (Spring)]]
 - [[Runtime Exception (Java)]]
@@ -483,6 +490,5 @@ body: {"email": "myEmail@naver.com", "password":"myPw1234"}
 > **참고**
 > - [01](https://coasis.tistory.com/70)
 > - [02-Lombok 어노테이션 정리](https://lucas-owner.tistory.com/26)
-> - [[03-RequestBody와 ResponseBody]]
-> - [04-Spring 예외 처리](https://velog.io/@injoon2019/%EC%8A%A4%ED%94%84%EB%A7%81-%EC%8A%A4%ED%94%84%EB%A7%81%EC%97%90%EC%84%9C-%EC%98%88%EC%99%B8-%EC%B2%98%EB%A6%AC)
+> - [03-Spring 예외 처리](https://velog.io/@injoon2019/%EC%8A%A4%ED%94%84%EB%A7%81-%EC%8A%A4%ED%94%84%EB%A7%81%EC%97%90%EC%84%9C-%EC%98%88%EC%99%B8-%EC%B2%98%EB%A6%AC)
 
