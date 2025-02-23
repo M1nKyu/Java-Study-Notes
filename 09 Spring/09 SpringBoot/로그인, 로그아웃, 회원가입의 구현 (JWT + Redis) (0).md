@@ -218,3 +218,4 @@ public class GlobalExceptionHandler {
 > - [01](https://coasis.tistory.com/70)
 > - [02-csrf.disable()을 하는 이유?](https://velog.io/@wonizizi99/SpringSpring-security-CSRF%EB%9E%80-disable)
 > - [03-csrf 보호 기능](https://developer-youn.tistory.com/156)
+> - [📌 04-마이크로서비스 구조(MSA)의 인증 및 인가](https://medium.com/spoontech/%EB%A7%88%EC%9D%B4%ED%81%AC%EB%A1%9C%EC%84%9C%EB%B9%84%EC%8A%A4-%EA%B5%AC%EC%A1%B0-msa-%EC%9D%98-%EC%9D%B8%EC%A6%9D-%EB%B0%8F-%EC%9D%B8%EA%B0%80-authorization-authentication-a595179ab88e)
