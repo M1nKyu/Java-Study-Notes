@@ -6,7 +6,7 @@ tags:
 last_modified: 2025-02-20T17:28:00
 ---
 ## ⭐ @RequestBody, @ResponseBody
-> 스프링 프레임워크에서 비동기 통신, 즉 API 통신을 구현하기 위해 `@RequestBody`와 `@ResponseBody` 어노테이션을 사용한다.
+> 이 어노테이션들은 주로 **HTTP 요청과 응답의 본문을 Java 객체와 매핑**하는 데 사용된다.
 ### 🍪 @RequestBody
 > JSON 기반의 HTTP Body를 자바 객체로 변환한다.
 ```java
@@ -19,7 +19,7 @@ public class Entity{
 
 // API Controller
 @PostMapping("/api/post")
-public void requestTest(@RequestBody Entity entity) {
+public void requestTest(@RequestBody Entity entity) { // 📌
     System.out.println("id = " + entity.id);
     System.out.println("name = " + entity.name);
     System.out.println("address = " + entity.address);
@@ -30,16 +30,16 @@ public void requestTest(@RequestBody Entity entity) {
 ### 🍪 @ResponseBody
 > 자바 객체를 JSON 기반의 HTTP Body로 변환한다.
 - `@RestController`를 사용하는 경우 반환값에 자동으로 `@ResponseBody` 어노테이션이 붙게 된다.
-	- 따라서 자바 객체를 반환하면 알아서 JSON 형식으로 매핑해서 응답한다.
+	- 따라서 자바 객체를 반환하면 알아서 **JSON 형식으로 매핑해서 응답**한다.
 ```java
 // @Conteoller + @ResponseBody 를 통해 JSON으로 직렬화되어 HttpResponse 객체로 전달한다.
 
 @Controller
 public class HelloResource {
 
-	@ResponseBody
+	@ResponseBody // 📌
 	@PostMapping("/api/test")
-	public HelloDTO showHelloDTO(@RequstBody HelloDTO dto){
+	public HelloDTO showHelloDTO(@RequestBody HelloDTO dto){
 		return dto;
 	}
 }
@@ -53,3 +53,4 @@ public class HelloResource {
 > **참고**
 > - [01](https://cheershennah.tistory.com/179)
 > - [02-@RequestBody, @ResponseBody 이해하기](https://velog.io/@nomonday/Spring-RequestBody-ResponseBody-%EC%9D%B4%ED%95%B4%ED%95%98%EA%B8%B0)
+> - [03-@RequestBody 과 @ResponseBody 차이는 무엇인가?](https://xeounxzxu.medium.com/spring-requestbody-vs-responsebody-26ed53a0849e)
