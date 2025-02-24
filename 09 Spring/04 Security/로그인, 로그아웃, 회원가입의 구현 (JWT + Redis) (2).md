@@ -3,7 +3,7 @@ created: 2025-02-18 19:39
 tags:
   - spring
   - springboot
-last_modified: 2025-02-18T19:47:00
+last_modified: 2025-02-24T19:00:00
 ---
 > [출처 블로그](https://coasis.tistory.com/72), [깃허브](https://github.com/Ssspil/blog-code/tree/main/security)
 ---
@@ -104,8 +104,8 @@ public class LoginAuthenticationFilter extends UsernamePasswordAuthenticationFil
 ###### ❓ AbstractAuthenticationProcessingFilter란?
 - Spring Security에서 인증 요청을 처리하는 필터의 부모 클래스.
 - 사용자가 로그인 요청을 보내면, 인증을 수행하는 핵심 역할을 한다.
-- 주로 로그인 요청을 가로채고, AuthenticationManager에게 인증을 위임한다.
-- UsernamePasswordAuthenticationFilter가 이 클래스를 상속받아 사용된다.
+- **주로 로그인 요청을 가로채고**, **AuthenticationManager에게 인증을 위임**한다.
+- **UsernamePasswordAuthenticationFilter가 이 클래스를 상속**받아 사용된다.
 
 1️. **로그인 요청을 가로챔**
 	- 특정 URL(예: `/login`)에 대한 요청을 감지
@@ -127,7 +127,7 @@ public class LoginAuthenticationFilter extends UsernamePasswordAuthenticationFil
 	- 클라이언트가 **서버로 보낸 요청**을 담는 객체.
 	- 요청 헤더, 파라미터, 바디, 세션 정보 등을 **가져오는 데 사용**한다.
 - HttpServletResponse
-	- HTTP 응답 코드, 응답 헤더, 응답 바디 등을 설정할 수 있다.
+	- HTTP 응답 코드, 응답 헤더, 응답 바디 등을 **설정**할 수 있다.
 ###### ❓ content-Type이란? 구분의 필요성은?
 - 클라이언트가 서버로 **보낼 데이터 형식**을 나타내는 HTTP 헤더.
 - 서버가 Content-Type을 확인하고, 데이터 처리 방식을 결정하는데 사용한다.
@@ -149,7 +149,7 @@ Authentication authentication = authenticationManager.authenticate(
 4️. 인증 성공 → `Authentication` 객체 반환  
 5️. 인증 실패 → `AuthenticationException` 발생
 ###### ❓ UsernamePasswordAuthenticationToken란?
-- Spring Security에서 사용자의 아이디와 비밀번호를 담는 토큰 객체.
+- Spring Security에서 사용자의 **아이디와 비밀번호를 담는 토큰 객체**.
 - 인증 전과 인증 후의 상태가 다르다.
 - 인증 요청 시, password만 포함하고, 권한 정보는 null.
 - 인증 성공 시, 사용자 정보(userDetails)와 권한(authorities) 포함.
@@ -159,27 +159,48 @@ new UsernamePasswordAuthenticationToken(userDetails, password, userDetails.getAu
 ---
 ### 🍪 실제 인증 로직 (AuthenticationProvider) 구현
 > DB에 존재하는 사람인지 아닌지를 검사한다.
+> DB에 저장된 사용자 정보와 입력된 로그인 정보가 일치하는지 검사한다.
 #### 🍬 LoginAuthenticationProvider
+- `AuthenticationProvider`는 Spring Security에서 사용자 인증을 담당하는 핵심 인터페이스다.
+- 사용자가 로그인 -> 입력한 정보를 검사 -> 인증 성공 시 `Authentication` 객체 반환. 
 ```java
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class LoginAuthenticationProvider implements AuthenticationProvider {
 
-    private final UserDetailsService userDetailsService;
+    private final UserDetailsService userDetailsService; // Spring Security에서 사용자 정보를 불러오는 인터페이스.
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
+    /*
+    📌 authenticate 메서드
+    */
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+
+        // authentication.getPrincipal(): 로그인 시 사용자가 입력한 아이디(또는 이메일)
         UserDetails user = userDetailsService.loadUserByUsername((String) authentication.getPrincipal());
 
+        // authentication.getCredentials(): 사용자가 입력한 비밀번호
+        // authentication.getPassword(): DB에 저장된 암호화된 비밀번호
         if(bCryptPasswordEncoder.matches((String)authentication.getCredentials(), user.getPassword())){
+            // 📌 UsernamePasswordAuthenticationToken: Spring Security에서 제공하는 인증 객체
+	            // 첫 번째 인자: 인증된 사용자 정보 (UserDetails)
+	            // 두 번째 인자: 빈 문자열 -> 비밀번호는 저장하지 않음
+	            // 세 번째 인자: 사용자의 권한 정보
             return new UsernamePasswordAuthenticationToken(user, "", user.getAuthorities());
-        }else {
-            throw new LoginAuthenticationException("비밀번호가 다릅니다.");
+        }
+        else {
+            throw new LoginAuthenticationException("비밀번호가 다릅니다."); // 비밀번호가 틀리면 예외를 던져 인증 실패
         }
     }
 
+    /*
+    📌 supports 메서드
+	    LoginAuthenticationProvider가 특정 Authentication 타입을 지원하는지 여부를 결정한다.
+	    UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication):
+	        이 프로바이더가 UsernamePasswordAuthenticationToken 타입의 인증 요청을 처리할 수 있는지 확인한다.
+    */
     @Override
     public boolean supports(Class<?> authentication) {
         return UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication);
@@ -188,6 +209,9 @@ public class LoginAuthenticationProvider implements AuthenticationProvider {
 ```
 
 #### 🍬 LoginAuthenticationException
+- 사용자 정의 예외 클래스, `AuthenticationException`을 상속받는다.
+	- **`AuthenticationException`**: Spring Security에서 인증 관련 예외를 처리하기 위한 기본 예외 클래스.
+	- **`LoginAuthenticationException`**: 비밀번호가 일치하지 않을 때 발생하는 예외를 정의.
 ```java
 public class LoginAuthenticationException extends AuthenticationException {
 
@@ -202,8 +226,68 @@ public class LoginAuthenticationException extends AuthenticationException {
 ```
 #### 🍬 궁금점
 ###### ❓ UsernamePasswordAuthenticationToken와 UsernamePasswordAuthenticationFilter
+- **UsernamePasswordAuthenticationToken**:
+	- Spring Security에서 제공하는 인증 객체
+	- 사용자의 인증 정보(ID, PW, 권한)을 담음
+	- `Authentication` 인터페이스를 구현
+	- 주로 인증이 성공한 후 SecurityContext에 저장
+```java
+Authentication auth = new UsernamePasswordAuthenticationToken(user, "", user.getAuthorities());
+```
 
+- **UsernamePasswordAuthenticationFilter**:
+	- 사용자의 로그인 요청을 처리하는 필터
+	- Spring Security의 기본 로그인 필터
+	- 내부적으로 사용자의 ID/PW를 받아 `AuthenticationManager`를 호출하여 인증을 진행
+```java
+public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
+    @Override
+    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) {
+        String username = request.getParameter("username");
+        String password = request.getParameter("password");
 
+        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(username, password); // 📌 
+        return getAuthenticationManager().authenticate(authToken); // 📌
+    }
+}
+```
+###### ❓ supports() 메서드?
+- 현재 `AuthenticationProvider`가 어떤 인증 객체를 지원하는지 확인한다.
+- 필요성
+	- `AuthenticationManager`는 여러 개의 `AuthenticationProvider`를 가질 수 있음
+	- 특정 `Authentication` 타입이 들어왔을 때 **적절한 AuthenticationProvider를 선택하기 위해** 사용한다.
+```java
+@Override
+public boolean supports(Class<?> authentication) {
+	// `UsernamePasswordAuthenticationToken` 타입의 인증 요청만 처리하도록 설정
+    return UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication);
+}
+```
+
+```java
+// 예제: JWT 인증을 추가하는 경우
+// `JwtAuthenticationToken`을 지원하는 새로운 `AuthenticationProvider`를 만들 수 있음
+@Override
+public boolean supports(Class<?> authentication) {
+    return JwtAuthenticationToken.class.isAssignableFrom(authentication);
+}
+```
+#### 🍬 동작 흐름
+```css
+[사용자 로그인 요청]
+    ⬇
+[Spring Security의 AuthenticationManager]
+    ⬇
+[LoginAuthenticationProvider.authenticate() 호출]
+    ⬇
+1️⃣ 입력된 아이디로 DB에서 사용자 정보 조회
+    ⬇
+2️⃣ 입력된 비밀번호와 저장된 비밀번호 비교
+    ⬇
+3️⃣ 비밀번호가 일치하면 인증 성공 → Authentication 객체 반환
+    ⬇
+4️⃣ 비밀번호가 틀리면 예외 발생 → 인증 실패
+```
 ---
 ### 🍪 UserDetailsService DB 로직 구현
 #### 🍬 UserServiceImpl 코드 추가
@@ -213,21 +297,27 @@ public class LoginAuthenticationException extends AuthenticationException {
 @Transactional              // 트랜잭션 관리를 자동으로 처리: saveUser()의 작업이 한 트랜잭션에 처리되도록 해준다.
 @RequiredArgsConstructor    // final 선언 필드의 생성자를 자동으로 생성한다 -> 의존성 자동 주입
 public class UserServiceImpl implements UserService, UserDetailsService {
-
+	
+	// 📌
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Override
     public User saveUser(JoinRequestDto joinRequest){  ...  }
     
-	// 📌 추가
+    /*
+    📌 loadUserByUsername(): 사용자 정보 조회
+    */
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        // 1. username(이메일)로 DB에서 사용자 정보 조회
         User findUser = userRepository.findByEmail(username);
 
+        // 2. 사용자가 존재하지 않으면 예외 발생
         if(findUser == null){
             throw new UsernameNotFoundException("해당 유저를 찾을 수 없습니다.");
         }
+        // 3. CustomUserDetailsDto를 반환하여 Spring Security가 사용할 수 있도록 함
         return new CustomUserDetailsDto(findUser);
     }
 }
@@ -236,10 +326,10 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 #### 🍬 UserRepository 코드 추가
 ```java
 @Repository
-public interface UserRepository extends JpaRepository <User, Long>{
-    Boolean existsByEmail(String email);
-
-    User findByEmail(String email); // 📌 추가
+public interface UserRepository extends JpaRepository<User, Long> {
+    Boolean existsByEmail(String email); // 이메일 존재 여부 확인
+    
+    User findByEmail(String email); // 📌 추가: 이메일로 사용자 조회
 }
 ```
 
@@ -247,51 +337,89 @@ public interface UserRepository extends JpaRepository <User, Long>{
 ```java
 @Slf4j
 @RequiredArgsConstructor
-public class CustomUserDetailsDto implements UserDetails {
+public class CustomUserDetailsDto implements UserDetails { // UserDetails 구현 -> 사용자 인증을 위해 사용
 
     private final User user;
 
+    // 📌 getAuthorities(): 사용자 권한 반환
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
+        // 1. 빈 리스트 authorities 생성
         Collection<GrantedAuthority> authorities = new ArrayList<>();
-
+        
+        // 2. user.getRole().getCode(): 사용자의 역할코드(Role)를 가져옴
+        // 3. GrantedAuthority 형태로 변환하여 리스트에 추가
         authorities.add((GrantedAuthority) () -> user.getRole().getCode());
 
         return authorities;
     }
 
+    /*
+    📌 getPassword(), getUsername(): 보안 필수 정보 반환
+    */
     @Override
-    public String getPassword() {
+    public String getPassword() { // DB에 저장된 암호화된 비밀번호 반환
         return user.getPassword();
     }
-
     @Override
-    public String getUsername() {
+    public String getUsername() { // 이메일을 아이디처럼 사용
         return user.getEmail();
     }
 
-    //
+    /*
+    📌 계정 상태 관련 메서드
+	    필요하다면 DB의 user 엔티티에 enabled, accountLocked 등의 필드를 추가해 실제 값을 반영 가능
+    */
     @Override
     public boolean isAccountNonExpired() {
-        return true;
+        return true; // 계정이 만료되지 않음
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return true; // 계정이 잠겨있지 않음
     }
 
     @Override
     public boolean isCredentialsNonExpired(){
-        return true;
+        return true; // 비밀번호가 만료되지 않음
     }
 
     @Override
     public boolean isEnabled(){
-        return true;
+        return true; // 계정이 활성화됨
     }
 }
 ```
+#### 🍬 동작 과정
+```css
+[사용자 로그인 요청]
+    ⬇
+[Spring Security] 
+    ⬇
+[AuthenticationManager]
+    ⬇
+[LoginAuthenticationProvider.authenticate()]
+    ⬇
+[UserServiceImpl.loadUserByUsername() 실행]
+    ⬇
+[UserRepository.findByEmail() 실행 → DB 조회]
+    ⬇
+[CustomUserDetailsDto 변환 후 반환]
+    ⬇
+[비밀번호 비교 후 인증 성공 여부 결정]
+    ⬇
+[SecurityContext에 저장 → 로그인 완료]
+```
+#### 🍬 궁금점
+###### ❓ `Collection<? extends GrantedAuthority>`란?
+- `GrantedAuthority`란?:
+	- Spring Security에서 사용자의 권한(ROLE)을 표현하는 인터페이스.
+	- ex: `ROLE_USER`, `ROLE_ADMIN` 같은 역할을 부여할 때 사용한다.
+
+- `Collection<? extends GrantedAuthority>`의 의미:
+	- `GrantedAuthority` 또는 이를 상속받은 객체를 저장하는 리스트
+	- 사용자가 가진 모든 권한을 반환하는 역할을 한다.
 ---
 ### 🍪 SecurityConfig 설정 추가
 ```java
@@ -300,7 +428,7 @@ public class CustomUserDetailsDto implements UserDetails {
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-
+	
     @Value("${spring.security.cors.allowed-methods}")
     private String[] ALLOW_METHOD;
     @Value("${spring.security.cors.allowed-origins}")
@@ -379,6 +507,32 @@ public class SecurityConfig {
       allowed-origins: "http://localhost:8080"
       allowed-methods: "GET,POST,PUT,DELETE,OPTIONS"
 ```
+#### 🍬 동작 흐름
+```css
+1️⃣ 클라이언트가 로그인 요청 (POST /api/login)
+2️⃣ LoginAuthenticationFilter가 요청을 가로채서 인증 시도
+3️⃣ AuthenticationManager가 UserDetailsService를 이용해 사용자 정보를 확인
+4️⃣ 비밀번호 검증 후 인증 성공 시 JWT 토큰 생성
+5️⃣ 이후 요청에서 JWT를 포함하여 API 요청
+6️⃣ SecurityFilterChain이 요청별 접근 제어 수행
+```
+#### 🍬 궁금점
+###### ❓ AuthenticationConfiguration란?
+- Spring Security에서 `AuthenticationManager`를 제공하는 설정 클래스.
+- Security 설정 시 직접 `AuthenticationManager`를 생성하지 않고, `AuthenticationConfiguration`을 통해 가져올 수 있다.
+###### ❓ CorsConfiguration란?
+- Spring Security에서 CORS 설정을 관리하는 클래스.
+- 다른 도메인에서 API 요청을 허용할지 결정하는 역할.
+###### ❓ CORS 정책의 필수 설정 요소
+
+| 설정 요소           | 설명                        | `CorsConfiguration` 코드 예시                                                              |
+| --------------- | ------------------------- | -------------------------------------------------------------------------------------- |
+| **Origin**      | 허용할 출처(도메인)               | `configuration.setAllowedOrigins(List.of("http://localhost:8080"));`                   |
+| **Methods**     | 허용할 HTTP 메서드              | `configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));` |
+| **Headers**     | 허용할 요청 헤더                 | `configuration.setAllowedHeaders(Collections.singletonList("*"));`                     |
+| **Credentials** | 인증 정보(쿠키, 토큰 등) 포함 여부     | `configuration.setAllowCredentials(true);`                                             |
+| **Max Age**     | 브라우저가 CORS 정책을 캐싱하는 시간(초) | `configuration.setMaxAge(3600L);`                                                      |
+
 ---
 ## 다음 학습: [[로그인, 로그아웃, 회원가입의 구현 (JWT + Redis) (3)]]
 ---
@@ -386,7 +540,10 @@ public class SecurityConfig {
 - [[Spring Security의 인증 흐름 (Spring Security)]]
 - [[AuthenticationManager와 AuthenticationProvider (Spring Security)]]
 - [[Spring Security의 예외 처리 (Spring Security)]]
+- [[ObjectMapper (Java)]]
+- [[FormData와 JSON (Spring)]]
 ---
 > **참고**
 > - [01-SpringSecurity 구조와 흐름](https://coasis.tistory.com/71)
 > - [02-AbstractAuthenticationProcessingFilter(SpringSecurity)](https://velog.io/@on5949/SpringSecurity-AbstractAuthenticationProcessingFilter-%EC%99%84%EC%A0%84-%EC%A0%95%EB%B3%B5)
+> - [03-AuthenticationProvider 인터페이스](https://velog.io/@10000ji_/Spring-Security-Authentication-Provider-%EC%9D%B8%EC%A6%9D-%EC%A0%9C%EA%B3%B5%EC%9E%90-%EC%84%A4%EB%AA%85-%EB%B0%8F-%EA%B5%AC%ED%98%84)
